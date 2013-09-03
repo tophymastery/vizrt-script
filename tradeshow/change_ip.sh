@@ -83,3 +83,10 @@ sed -i "s/$jboss_ip/$NEW_IP/g" $EAR_PATH/diactus.properties
 
 echo "[INFO] - Starting service vmeController"
 #/sbin/service vmeoController start
+
+
+
+
+
+
+escenic change file in /var/spool/....
