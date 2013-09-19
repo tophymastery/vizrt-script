@@ -71,6 +71,82 @@ function set_config {
   done
 }
 
+function verify_path_directory {
+  verify_result=1
+  is_source_path=-1
+  is_desc_path=-1
+
+  echo "[INFO] - Verifying path and directory."
+
+  if [ ! -d $source_path ]; then
+    echo "[ERROR] - Directory ${source_path} doesn't exist."
+    echo "[ERROR] - Please set parameter --source_path"
+    verify_result=-1
+  else
+    is_source_path=1
+  fi
+
+  if [ ! -d $desc_path ]; then
+    echo "[ERROR] - Directory ${desc_path} doesn't exist."
+    echo "[ERROR] - Please set parameter --desc_path"
+    verify_result=-1
+  else
+    is_desc_path=1
+  fi
+
+  if [ ! -d $lib_path ]; then
+    echo "[ERROR] - Directory ${lib_path} doesn't exist."
+    echo "[ERROR] - Please set parameter --lib_path"
+    verify_result=-1
+  fi
+
+  if [ ! -f $source_file ]; then
+    echo "[ERROR] - File ${source_path}/${source_file} doesn't exist."
+    echo "[ERROR] - Please set parameter --source_file"
+    verify_result=-1
+  fi
+  
+  if [ $merge_file -eq 1 ]; then
+    verify_result=1
+    if [ ! -d $merge_path ]; then
+      echo "[ERROR] - Directory ${merge_path} doesn't exist."
+      echo "[ERROR] - Please set parameter --merge_path"
+      verify_result=-1
+    fi
+
+    if [ ! -f $merge_file1 ]; then
+      echo "[ERROR] - File ${merge_path}/${merge_file1} doesn't exist."
+      echo "[ERROR] - Please set parameter --merge_file1"
+      verify_result=-1
+    fi
+
+    if [ ! -f $merge_file2 ]; then
+      echo "[ERROR] - File ${merge_path}/${merge_file2} doesn't exist."
+      echo "[ERROR] - Please set parameter --merge_file2"
+      verify_result=-1
+    fi
+  fi
+
+  if [ $purge -gt 0 ]; then
+    verify_result=1
+    if [ $is_source_path -lt 1 ]; then
+      echo "[ERROR] - Directory ${is_source_path} doesn't exist."
+      verify_result=-1
+    fi
+  
+    if [ $is_desc_path -gt 0 ]; then
+      echo "[ERROR] - Directory ${is_desc_path} doesn't exist."
+      verify_result=-1
+    fi
+  fi
+
+  if [ $verify_result -lt 1 ]; then
+    echo "[ERROR] - Will exit."
+    exit 0
+  fi
+
+}
+
 function extract_json {
   for i in $(seq ${date_range})
   do
@@ -121,7 +197,13 @@ function merge_file {
 }
 
 function purge {
-  echo "[INFO] - Will delete all files and folders in ${desc_path}"
+  echo "[INFO] - Will delete all files in ${source_path}"
+  $(find ${source_path}/ -maxdepth 1 -type f -delete)
+  if [ $? -eq 0 ]; then
+    echo "[INFO] - Done."
+  fi
+
+  echo "[INFO] - Will delete all files in ${desc_path}"
   $(find ${desc_path}/ -maxdepth 1 -type f -delete)
   if [ $? -eq 0 ]; then
     echo "[INFO] - Done."
@@ -130,6 +212,7 @@ function purge {
 
 
 set_config $*
+verify_path_directory
 
 if [ $purge -gt 0 ]; then
   purge
