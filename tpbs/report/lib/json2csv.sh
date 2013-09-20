@@ -128,14 +128,15 @@ function verify_path_directory {
   fi
 
   if [ $purge -gt 0 ]; then
+    echo "will purge"
     verify_result=1
     if [ $is_source_path -lt 1 ]; then
-      echo "[ERROR] - Directory ${is_source_path} doesn't exist."
+      echo "[ERROR] - Directory ${source_path} doesn't exist."
       verify_result=-1
     fi
   
-    if [ $is_desc_path -gt 0 ]; then
-      echo "[ERROR] - Directory ${is_desc_path} doesn't exist."
+    if [ $is_desc_path -lt 1 ]; then
+      echo "[ERROR] - Directory ${desc_path} doesn't exist."
       verify_result=-1
     fi
   fi
