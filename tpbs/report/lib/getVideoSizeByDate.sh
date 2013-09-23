@@ -1,8 +1,8 @@
 mysql_user=""
 mysql_password=""
 mysql_dbname=""
-start_date=""
-end_date=""
+start_date="1378001528268"
+end_date="1379910333541"
 
 tmp_return=""
 result_file="result"
@@ -15,20 +15,16 @@ function getSourceVideoID {
   echo "[INFO] - Will run sql command: ${sql}"  
  
   mysql --batch < ${sql_tmp} > ${result_file}
-
-  $(sed -i -e '1d' ${result_file})
-  tr '\n' ',' < ${result_file} > ${result_file}2
-  mv ${result_file}2 ${result_file}
-  sed -ie 's/,$//' ${result_file}
-  echo "[INFO] - Write video Id list to ${result_file}"
-  $(rm -f ${sql_tmp})
 }
 
 function getVideoList {
   sql_tmp="sql.tmp"
+  start_id=$(head -n 2 ${result_file} | tail -n 1)
+  end_id=$(tail -n 1 ${result_file})
   sql="use diactus;"
-  sql="${sql}SELECT adaptation, id, fileSize, mediaResourceId FROM MediaResource WHERE "
-  sql="${sql}(id in ($(cat ${result_file}))) or (mediaResourceId in ($(cat ${result_file})));"
+  sql="${sql}SELECT adaptation, id, fileSize, fileNamePrefix, mediaResourceId FROM MediaResource WHERE "
+  sql="${sql}  substring_index(fileNamePrefix, \"_\",1) > ${start_id} AND "
+  sql="${sql}  substring_index(fileNamePrefix, \"_\",1) < ${end_id}"
   $(echo ${sql} > ${sql_tmp})
   echo "[INFO] - Query video size in date range"
   echo "[INFO] - Will run sql command: ${sql}"
@@ -57,6 +53,10 @@ function setParam {
       end_date=$2
       shift
       shift
+    elif [ $1 == "--file" ]; then
+      result_file=$2
+      shift
+      shift
     fi
   done
   echo "[INFO] - Done"
@@ -70,3 +70,4 @@ dateToTimestamp ${end_date}
 end_date=${tmp_return}
 getSourceVideoID
 getVideoList
+
